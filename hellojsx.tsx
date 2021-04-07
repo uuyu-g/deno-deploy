@@ -10,7 +10,7 @@ function App() {
         <title>yutaro-elk</title>
       </head>
       <body>
-        <h1>yutaro-elk site</h1>
+        <h1>yutaro-elk page!</h1>
       </body>
     </html>
   );
