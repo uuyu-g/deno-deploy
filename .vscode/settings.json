@@ -3,5 +3,8 @@
   "deno.lint": true,
   "deno.unstable": true,
   "deno.config": "./tsconfig.json",
-  "deno.codeLens.implementations": true
+  "deno.codeLens.implementations": true,
+  "cSpell.words": [
+    "datadeno"
+  ]
 }
