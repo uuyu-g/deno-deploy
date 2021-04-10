@@ -1,22 +1,55 @@
-import { serve } from "https://deno.land/x/sift@0.1.7/mod.ts";
+import {
+  json,
+  serve,
+  validateRequest,
+} from "https://deno.land/x/sift@0.1.7/mod.ts";
 
-const SLACK_TOKEN = Deno.env.get("SLACK_TOKEN");
-if (!SLACK_TOKEN) {
-  throw new Error("環境変数が設定されていません");
-}
-const SLACK_URL = `https://hooks.slack.com/services/${SLACK_TOKEN}`;
+async function handleRequest(request: Request) {
+  const { body, error } = await validateRequest(request, {
+    GET: {},
+    POST: {
+      body: ["message"],
+      headers: ["Authentication"],
+    },
+  });
 
-serve({
-  "/:name": (req, params) => {
-    const token = req.headers.get("Authentication");
-    if (token !== SLACK_TOKEN) return new Response("権限がありません");
+  if (error) {
+    return json(
+      { error: error.message },
+      { status: error.status },
+    );
+  }
 
-    return fetch(
-      SLACK_URL,
+  if (request.method === "GET") {
+    return new Response(
+      `<body
+        align="center"
+        style="font-family: Avenir, Helvetica, Arial, sans-serif; font-size: 1.5rem;"
+      >
+        <p>
+          datadeno.
+        </p>
+      </body>`,
       {
-        method: "POST",
-        body: JSON.stringify({ text: `Hello, ${params?.name}!` }),
+        headers: {
+          "content-type": "text/html; charset=UTF-8",
+        },
       },
     );
-  },
-});
+  }
+
+  const token = Deno.env.get("SLACK_TOKEN");
+  if (!token) {
+    return json({ error: "環境変数が設定されていません" }, { status: 500 });
+  }
+
+  const auth = request.headers.get("Authentication");
+  if (auth !== token) return json({ error: "権限がありません" }, { status: 401 });
+
+  return fetch(`https://hooks.slack.com/services/${token}`, {
+    method: "POST",
+    body: JSON.stringify({ text: `Hello, ${body!.message}!` }),
+  });
+}
+
+serve({ "/": handleRequest });
